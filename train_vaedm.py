@@ -80,20 +80,17 @@ def train(root, **kwargs):
     d_type = kwargs.get("dataset")
     image_size = kwargs.get("image_size")
 
-    if d_type == "recons":
-        transforms = T.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
-    else:
-        transforms = T.Compose(
-            [
-                T.Resize(image_size),
-                T.RandomHorizontalFlip()
-                if kwargs.get("flip")
-                else T.Lambda(lambda t: t),
-                T.CenterCrop(image_size),
-                T.ToTensor(),
-                T.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5]),
-            ]
-        )
+    transforms = T.Compose(
+        [
+            T.Resize(image_size),
+            T.RandomHorizontalFlip()
+            if kwargs.get("flip")
+            else T.Lambda(lambda t: t),
+            T.CenterCrop(image_size),
+            T.ToTensor(),
+            T.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5]),
+        ]
+    )
     dataset = get_dataset(d_type, root, transform=transforms)
     N = len(dataset)
     batch_size = kwargs.get("batch_size")
