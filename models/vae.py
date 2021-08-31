@@ -181,12 +181,10 @@ class Decoder(nn.Module):
     def forward(self, input):
         x = self.block_mod(input)
         x = self.last_conv(x)
-        return torch.sigmoid(x)
+        return torch.tanh(x)
 
 
-# Implementation of the Resnet-VAE using a ResNet backbone as encoder
-# and Upsampling blocks as the decoder
-class VAE(pl.LightningModule):
+class VAE(nn.Module):
     def __init__(
         self,
         enc_block_str,
@@ -194,16 +192,13 @@ class VAE(pl.LightningModule):
         enc_channel_str,
         dec_channel_str,
         alpha=1.0,
-        lr=1e-4,
     ):
         super().__init__()
-        self.save_hyperparameters()
         self.enc_block_str = enc_block_str
         self.dec_block_str = dec_block_str
         self.enc_channel_str = enc_channel_str
         self.dec_channel_str = dec_channel_str
         self.alpha = alpha
-        self.lr = lr
 
         # Encoder architecture
         self.enc = Encoder(self.enc_block_str, self.enc_channel_str)
@@ -226,7 +221,7 @@ class VAE(pl.LightningModule):
     def compute_kl(self, mu, logvar):
         return -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
 
-    def forward(self, z):
+    def sample(self, z):
         # Only sample during inference
         decoder_out = self.decode(z)
         return decoder_out
@@ -238,7 +233,7 @@ class VAE(pl.LightningModule):
         decoder_out = self.decode(z)
         return decoder_out
 
-    def training_step(self, batch, batch_idx):
+    def forward(self, batch):
         x = batch
 
         # Encoder
@@ -250,20 +245,10 @@ class VAE(pl.LightningModule):
         # Decoder
         decoder_out = self.decode(z)
 
-        # Compute loss
-        mse_loss = nn.MSELoss(reduction="sum")
-        recons_loss = mse_loss(decoder_out, x)
+        # KL Loss
         kl_loss = self.compute_kl(mu, logvar)
-        self.log("Recons Loss", recons_loss, prog_bar=True)
-        self.log("Kl Loss", kl_loss, prog_bar=True)
 
-        total_loss = recons_loss + self.alpha * kl_loss
-        self.log("Total Loss", total_loss)
-        return total_loss
-
-    def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
-        return optimizer
+        return decoder_out, kl_loss
 
 
 if __name__ == "__main__":
@@ -281,6 +266,5 @@ if __name__ == "__main__":
     )
 
     sample = torch.randn(1, 3, 128, 128)
-    out = vae.training_step(sample, 0)
-    print(vae)
+    out = vae(sample, 0)
     print(out.shape)
