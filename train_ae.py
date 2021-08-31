@@ -8,8 +8,8 @@ from pytorch_lightning.callbacks import ModelCheckpoint
 from torch.utils.data import DataLoader
 
 # from models.vae import VAE
-from models.vae import VAE
-from util import get_dataset
+from models.lightning import VAE
+from util import get_dataset, configure_device
 
 
 logger = logging.getLogger(__name__)
@@ -37,7 +37,7 @@ logger = logging.getLogger(__name__)
 @click.option("--workers", default=2)
 @click.option("--lr", default=1e-4)
 @click.option("--log-step", default=1)
-@click.option("--device", default="gpu", type=click.Choice(["cpu", "gpu", "tpu"]))
+@click.option("--device", default="gpu")
 @click.option("--dataset", default="celeba-hq")
 @click.option("--subsample-size", default=None)  # Integrate this!
 @click.option("--chkpt-interval", default=1)
@@ -46,7 +46,6 @@ logger = logging.getLogger(__name__)
 @click.option("--restore-path", default=None)
 @click.option("--results-dir", default=os.getcwd())
 def train(root, **kwargs):
-    print(kwargs)
     # Transforms
     image_size = kwargs.get("image_size")
     assert image_size in [128, 256, 512]
@@ -64,16 +63,6 @@ def train(root, **kwargs):
     N = len(dataset)
     batch_size = kwargs.get("batch_size")
     batch_size = min(N, batch_size)
-
-    # Loader
-    loader = DataLoader(
-        dataset,
-        batch_size,
-        num_workers=kwargs.get("workers"),
-        pin_memory=True,
-        shuffle=True,
-        drop_last=True,
-    )
 
     # Model
     lr = kwargs.get("lr")
@@ -97,7 +86,7 @@ def train(root, **kwargs):
     chkpt_callback = ModelCheckpoint(
         monitor="Total Loss",
         dirpath=os.path.join(results_dir, "checkpoints"),
-        filename="vae-{epoch:02d}-{train_loss:.2f}",
+        filename="vae-{epoch:02d}-{train_loss:.4f}",
         every_n_epochs=kwargs.get("chkpt_interval", 10),
     )
 
@@ -107,10 +96,33 @@ def train(root, **kwargs):
     train_kwargs["callbacks"] = [chkpt_callback]
 
     device = kwargs.get("device")
-    if device == "gpu":
-        train_kwargs["gpus"] = [1]
+    loader_kws = {}
+    if device.startswith("gpu"):
+        _, devs = configure_device(device)
+        train_kwargs["gpus"] = devs
+
+        # Disable find_unused_parameters when using DDP training for performance reasons
+        from pytorch_lightning.plugins import DDPPlugin
+
+        train_kwargs["plugins"] = DDPPlugin(find_unused_parameters=False)
+        loader_kws["persistent_workers"] = True
     elif device == "tpu":
         train_kwargs["tpu_cores"] = 8
+
+    # Loader
+    loader = DataLoader(
+        dataset,
+        batch_size,
+        num_workers=kwargs.get("workers"),
+        pin_memory=True,
+        shuffle=True,
+        drop_last=True,
+        **loader_kws,
+    )
+
+    # Half precision training
+    if kwargs.get("fp16"):
+        train_kwargs["precision"] = 16
 
     logger.info(f"Running Trainer with kwargs: {train_kwargs}")
     trainer = pl.Trainer(**train_kwargs)
