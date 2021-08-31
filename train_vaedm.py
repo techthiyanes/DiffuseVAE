@@ -6,6 +6,7 @@ import pytorch_lightning as pl
 import torchvision.transforms as T
 
 from pytorch_lightning.callbacks import ModelCheckpoint
+from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning.utilities.seed import seed_everything
 from torch.utils.data import DataLoader
 
@@ -63,7 +64,6 @@ def __parse_str(s):
 @click.option("--optimizer", default="Adam")
 @click.option("--vae-lr", default=1e-4)
 @click.option("--ddpm-lr", default=2e-5)
-@click.option("--sample-interval", default=100)  # Integrate this!
 @click.option("--restore-path", default=None)
 @click.option("--results-dir", default=os.getcwd())
 @click.option("--dataset", default="celeba-hq")
@@ -71,7 +71,7 @@ def __parse_str(s):
 @click.option("--image-size", default=128)
 @click.option("--workers", default=4)
 @click.option("--use-cond", default=True, type=bool)
-@click.option("--subsample-size", default=None)  # Integrate this!
+@click.option("--wandb-run-name", default="dummy")
 def train(root, **kwargs):
     # Set seed
     seed_everything(kwargs.get("seed"), workers=True)
@@ -185,6 +185,14 @@ def train(root, **kwargs):
         drop_last=True,
         **loader_kws,
     )
+
+    # Logger
+    wandb_logger = WandbLogger(
+        name=kwargs.get("wandb_run_name"),
+        log_model="all",
+        project="vaedm",
+    )
+    train_kwargs["logger"] = wandb_logger
 
     logger.info(f"Running Trainer with kwargs: {train_kwargs}")
     trainer = pl.Trainer(**train_kwargs)
