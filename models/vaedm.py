@@ -10,7 +10,7 @@ class VAEDM(pl.LightningModule):
         ddpm,
         vae_lr=1e-4,
         ddpm_lr=2e-5,
-        vae_loss="l1",
+        vae_loss="l2",
         ddpm_loss="l1",
         alpha=1.0,
     ):
@@ -21,10 +21,14 @@ class VAEDM(pl.LightningModule):
         self.ddpm = ddpm
 
         self.vae_criterion = (
-            nn.MSELoss(reduction="mean") if vae_loss == "l2" else nn.L1Loss()
+            nn.MSELoss(reduction="sum")
+            if vae_loss == "l2"
+            else nn.L1Loss(reduction="sum")
         )
         self.ddpm_criterion = (
-            nn.MSELoss(reduction="mean") if ddpm_loss == "l2" else nn.L1Loss()
+            nn.MSELoss(reduction="sum")
+            if ddpm_loss == "l2"
+            else nn.L1Loss(reduction="sum")
         )
         self.vae_lr = vae_lr
         self.ddpm_lr = ddpm_lr

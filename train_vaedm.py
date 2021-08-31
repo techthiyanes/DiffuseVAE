@@ -83,9 +83,7 @@ def train(root, **kwargs):
     transforms = T.Compose(
         [
             T.Resize(image_size),
-            T.RandomHorizontalFlip()
-            if kwargs.get("flip")
-            else T.Lambda(lambda t: t),
+            T.RandomHorizontalFlip() if kwargs.get("flip") else T.Lambda(lambda t: t),
             T.CenterCrop(image_size),
             T.ToTensor(),
             T.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5]),
@@ -186,7 +184,7 @@ def train(root, **kwargs):
     # Logger
     wandb_logger = WandbLogger(
         name=kwargs.get("wandb_run_name"),
-        log_model="all",
+        log_model=False,
         project="vaedm",
     )
     train_kwargs["logger"] = wandb_logger
