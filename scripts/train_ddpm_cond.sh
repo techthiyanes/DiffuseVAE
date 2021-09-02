@@ -7,10 +7,10 @@ python train_ddpm.py --dim 128 \
                     --beta1 1e-4 \
                     --beta2 0.02 \
                     --n-timesteps 1000 \
-                    --fp16 True \
+                    --fp16 False \
                     --use-ema True \
                     --ema-decay 0.9999 \
-                    --batch-size 8 \
+                    --batch-size 10 \
                     --epochs 2000 \
                     --device gpu:0,1,2,3 \
                     --lr 2e-5 \
@@ -21,4 +21,5 @@ python train_ddpm.py --dim 128 \
                     --seed 0 \
                     --dataset 'recons' \
                     --use-cond True \
+                    --wandb-run-name vaedm_cond_inference \
                     /data/kushagrap20/vaedm/reconstructions/

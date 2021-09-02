@@ -73,6 +73,7 @@ class DDPM(nn.Module):
         return post_mean, post_variance
 
     def sample(self, x_t, cond=None, n_steps=None):
+        # TODO:Update this to account for the new posterior
         # The sampling process goes here!
         x = x_t
 
@@ -94,11 +95,14 @@ class DDPM(nn.Module):
             x = post_mean + torch.sqrt(post_variance) * z
         return x
 
-    def compute_noisy_input(self, x_start, eps, t):
+    def compute_noisy_input(self, x_start, eps, t, low_res=None):
         assert eps.shape == x_start.shape
+        x_recons = 0 if low_res is None else low_res
         # Samples the noisy input x_t ~ N(x_t|x_0) in the forward process
-        return x_start * extract(self.sqrt_alpha_bar, t, x_start.shape) + eps * extract(
-            self.minus_sqrt_alpha_bar, t, x_start.shape
+        return (
+            x_start * extract(self.sqrt_alpha_bar, t, x_start.shape)
+            + x_recons
+            + eps * extract(self.minus_sqrt_alpha_bar, t, x_start.shape)
         )
 
     def forward(self, x, eps, t, low_res=None):
@@ -107,7 +111,7 @@ class DDPM(nn.Module):
             self.setup_consts = True
 
         # Predict noise
-        x_t = self.compute_noisy_input(x, eps, t)
+        x_t = self.compute_noisy_input(x, eps, t, low_res=low_res)
         return self.decoder(x_t, t, low_res=low_res)
 
 
