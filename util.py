@@ -65,6 +65,19 @@ def get_dataset(name, root, **kwargs):
     return dataset
 
 
+def normalize(obj):
+    B, C, H, W = obj.shape
+    for i in range(3):
+        channel_val = obj[:, i, :, :].view(B, -1)
+        channel_val -= channel_val.min(1, keepdim=True)[0]
+        channel_val /= (
+            channel_val.max(1, keepdim=True)[0] - channel_val.min(1, keepdim=True)[0]
+        )
+        channel_val = channel_val.view(B, H, W)
+        obj[:, i, :, :] = channel_val
+    return obj
+
+
 # CREDITS: https://github.com/huggingface/pytorch-pretrained-BigGAN/blob/master/pytorch_pretrained_biggan/utils.py
 def convert_to_images(obj):
     """Convert an output tensor from BigGAN in a list of images.
@@ -73,11 +86,10 @@ def convert_to_images(obj):
     Output:
         list of Pillow Images of size (height, width)
     """
-    if not isinstance(obj, np.ndarray):
-        obj = obj.detach().numpy()
-
+    obj = normalize(obj)
+    obj = obj.detach().numpy()
     obj = obj.transpose((0, 2, 3, 1))
-    obj = np.clip(((obj + 1) / 2.0) * 256, 0, 255)
+    obj = np.clip(obj * 256, 0, 255)
 
     img = []
     for _, out in enumerate(obj):
