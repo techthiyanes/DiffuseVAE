@@ -44,6 +44,7 @@ def __parse_str(s):
 @click.option("--seed", default=0)
 @click.option("--use-ema", default=True)
 @click.option("--ema-decay", default=0.9999, type=float)
+@click.option("--truncation", default=1.0, type=float)
 @click.option("--batch-size", default=32)
 @click.option("--epochs", default=1000)
 @click.option("--log-step", default=1)
@@ -110,6 +111,7 @@ def train(root, **kwargs):
         beta_1=kwargs.get("beta1"),
         beta_2=kwargs.get("beta2"),
         T=kwargs.get("n_timesteps"),
+        truncation=kwargs.get("truncation"),
     )
     ddpm_wrapper = DDPMWrapper(ddpm, copy.deepcopy(ddpm), lr=lr, loss="l1")
 
@@ -173,7 +175,7 @@ def train(root, **kwargs):
         log_model=False,
         project="vaedm",
     )
-    train_kwargs["logger"] = wandb_logger
+    # train_kwargs["logger"] = wandb_logger
 
     logger.info(f"Running Trainer with kwargs: {train_kwargs}")
     trainer = pl.Trainer(**train_kwargs)
