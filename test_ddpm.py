@@ -101,6 +101,7 @@ def sample(
 @click.option("--num-samples", default=1)
 @click.option("--image-size", default=128)
 @click.option("--z-dim", default=1024)
+@click.option("--truncation", default=1.0, type=float)
 @click.option("--save-path", default=os.getcwd())
 @click.option("--n-steps", default=1000)
 @click.option("--compare", default=True)
@@ -111,6 +112,7 @@ def sample_cond(
     num_samples=1,
     image_size=128,
     z_dim=1024,
+    truncation=1.0,
     n_steps=1000,
     save_path=os.getcwd(),
     compare=True,
@@ -135,7 +137,9 @@ def sample_cond(
         dropout=0,
         num_heads=1,
     ).to(dev)
-    online_network = DDPM(unet).to(dev)
+    online_network = DDPM(
+        unet, beta_1=1e-4, beta_2=0.02, T=1000, truncation=truncation
+    ).to(dev)
     target_network = copy.deepcopy(online_network).to(dev)
     ddpm_wrapper = DDPMWrapper.load_from_checkpoint(
         ddpm_chkpt_path,
@@ -155,9 +159,9 @@ def sample_cond(
             recons_ = vae(z)
             vae_samples_list.append(recons_.cpu())
 
-            # Sample from DDPM
-            x_t = torch.randn(batch_size, 3, image_size, image_size).to(dev)
+            # Sample from DDPM (starting with the VAE reconstruction as the mean)
             recons = T.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])(recons_)
+            x_t = torch.normal(recons, torch.ones_like(recons)).to(dev)
             ddpm_sample = ddpm_wrapper(x_t, cond=recons, n_steps=n_steps).cpu()
             ddpm_samples_list.append(ddpm_sample)
 
@@ -171,11 +175,13 @@ def sample_cond(
 
     # Save a comparison of all images
     if compare:
+        compare_path = os.path.join(save_path, "compare")
+        os.makedirs(compare_path, exist_ok=True)
         for idx, (ddpm_pred, vae_pred) in enumerate(zip(ddpm_cat_preds, vae_cat_preds)):
             compare_samples(
                 vae_pred,
-                ddpm_pred * 0.5 + 0.5,
-                save_path=os.path.join(save_path, "compare", f"compare_{idx}.png"),
+                ddpm_pred,
+                save_path=os.path.join(compare_path, f"compare_{idx}.png"),
             )
 
 
