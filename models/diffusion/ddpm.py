@@ -15,12 +15,13 @@ def extract(a, t, x_shape):
 
 
 class DDPM(nn.Module):
-    def __init__(self, decoder, beta_1=1e-4, beta_2=0.02, T=1000):
+    def __init__(self, decoder, beta_1=1e-4, beta_2=0.02, T=1000, truncation=1.0):
         super().__init__()
         self.decoder = decoder
         self.T = T
         self.beta_1 = beta_1
         self.beta_2 = beta_2
+        self.truncation = truncation
 
         # Flag to keep track of device settings
         self.setup_consts = False
@@ -36,26 +37,31 @@ class DDPM(nn.Module):
 
         # Posterior covariance of the forward process
         self.post_variance = (
-            self.betas * (1.0 - self.alpha_bar_shifted) / (1.0 - self.alpha_bar)
+            (self.truncation ** 2)
+            * self.betas
+            * (1.0 - self.alpha_bar_shifted)
+            / (1.0 - self.alpha_bar)
         )
 
         # Auxillary consts
         self.sqrt_alpha_bar = torch.sqrt(self.alpha_bar)
+        self.sqrt_alphas = torch.sqrt(self.alphas)
         self.minus_sqrt_alpha_bar = torch.sqrt(1 - self.alpha_bar)
         self.post_coeff_1 = (
             torch.sqrt(self.alpha_bar_shifted) * self.betas / (1 - self.alpha_bar)
         )
         self.post_coeff_2 = (
-            torch.sqrt(self.alphas)
-            * (1 - self.alpha_bar_shifted)
-            / (1 - self.alpha_bar)
+            self.sqrt_alphas * (1 - self.alpha_bar_shifted) / (1 - self.alpha_bar)
         )
+        self.post_coeff_3 = 1 - self.post_coeff_2
 
     def get_posterior_mean_covariance(self, x_t, t, clip_denoised=True, cond=None):
         t_ = torch.full((x_t.size(0),), t, device=x_t.device, dtype=torch.long)
+        x_hat = 0 if cond is None else cond
         # Generate the reconstruction from x_t
         x_recons = (
             x_t
+            - cond
             - self.decoder(x_t, t_, low_res=cond)
             * extract(self.minus_sqrt_alpha_bar, t_, x_t.shape)
         ) / extract(self.sqrt_alpha_bar, t_, x_t.shape)
@@ -68,12 +74,12 @@ class DDPM(nn.Module):
         post_mean = (
             extract(self.post_coeff_1, t_, x_t.shape) * x_recons
             + extract(self.post_coeff_2, t_, x_t.shape) * x_t
+            + extract(self.post_coeff_3, t_, x_t.shape) * x_hat
         )
         post_variance = extract(self.post_variance, t_, x_t.shape)
         return post_mean, post_variance
 
     def sample(self, x_t, cond=None, n_steps=None):
-        # TODO:Update this to account for the new posterior
         # The sampling process goes here!
         x = x_t
 
@@ -102,7 +108,9 @@ class DDPM(nn.Module):
         return (
             x_start * extract(self.sqrt_alpha_bar, t, x_start.shape)
             + x_recons
-            + eps * extract(self.minus_sqrt_alpha_bar, t, x_start.shape)
+            + self.truncation
+            * eps
+            * extract(self.minus_sqrt_alpha_bar, t, x_start.shape)
         )
 
     def forward(self, x, eps, t, low_res=None):
