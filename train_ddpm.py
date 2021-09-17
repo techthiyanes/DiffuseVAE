@@ -69,7 +69,9 @@ def train(root, **kwargs):
     image_size = kwargs.get("image_size")
 
     if d_type == "recons":
-        transforms = T.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
+        # NOTE: Not normalizing gives better loss profile
+        # transforms = T.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
+        transforms = None
     else:
         transforms = T.Compose(
             [
