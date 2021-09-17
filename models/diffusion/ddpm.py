@@ -15,13 +15,15 @@ def extract(a, t, x_shape):
 
 
 class DDPM(nn.Module):
-    def __init__(self, decoder, beta_1=1e-4, beta_2=0.02, T=1000, truncation=1.0):
+    def __init__(self, decoder, beta_1=1e-4, beta_2=0.02, T=1000, truncation=1.0, reuse_epsilon=False):
         super().__init__()
         self.decoder = decoder
         self.T = T
         self.beta_1 = beta_1
         self.beta_2 = beta_2
         self.truncation = truncation
+        self.reuse_epsilon = reuse_epsilon
+        self.epsilon = None
 
         # Flag to keep track of device settings
         self.setup_consts = False
@@ -68,7 +70,7 @@ class DDPM(nn.Module):
 
         # Clip
         if clip_denoised:
-            x_recons.clamp_(-1.0, 1.0)
+            x_recons.clamp_(0, 1.0)
 
         # Compute posterior mean from the reconstruction
         post_mean = (
@@ -80,6 +82,10 @@ class DDPM(nn.Module):
         return post_mean, post_variance
 
     def sample(self, x_t, cond=None, n_steps=None):
+        if self.reuse_epsilon and self.epsilon is None:
+            _, C, H, W = x_t.shape
+            self.epsilon = torch.randn(self.T, C, H, W, device=x_t.device)
+
         # The sampling process goes here!
         x = x_t
 
@@ -91,7 +97,7 @@ class DDPM(nn.Module):
 
         num_steps = self.T if n_steps is None else n_steps
         for t in tqdm(reversed(range(0, num_steps))):
-            z = torch.randn_like(x_t)
+            z = torch.randn_like(x_t) if not self.reuse_epsilon else self.epsilon[t, :, :, :]
             post_mean, post_variance = self.get_posterior_mean_covariance(
                 x,
                 t,

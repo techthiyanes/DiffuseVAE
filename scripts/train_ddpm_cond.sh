@@ -10,16 +10,17 @@ python train_ddpm.py --dim 128 \
                     --fp16 False \
                     --use-ema True \
                     --ema-decay 0.9999 \
+                    --truncation 1.0 \
                     --batch-size 10 \
                     --epochs 2000 \
-                    --device gpu:0,1,2,3 \
+                    --device gpu:0,1,2 \
                     --lr 2e-5 \
                     --flip False \
-                    --results-dir /data/kushagrap20/ddpm_128 \
+                    --results-dir '/data/kushagrap20/ddpm_128_truncation_1.0_without_concat/' \
                     --image-size 128 \
                     --workers 8 \
                     --seed 0 \
                     --dataset 'recons' \
-                    --use-cond True \
+                    --use-cond False \
                     --wandb-run-name vaedm_cond_inference \
                     /data/kushagrap20/vaedm/reconstructions/
