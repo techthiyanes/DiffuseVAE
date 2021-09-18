@@ -430,8 +430,7 @@ def interpolate_vae(vae_chkpt_path, ddpm_chkpt_path, **kwargs):
 
             # Sample from DDPM
             x_t = (
-                recons_inter + kwargs,
-                get("temp") * torch.randn_like(recons_inter),
+                recons_inter + kwargs.get("temp") * torch.randn_like(recons_inter),
             ).to(dev)
             ddpm_sample = ddpm_wrapper(x_t, cond=recons_inter, n_steps=n_steps).cpu()
             ddpm_samples_list.append(normalize(ddpm_sample))
@@ -512,10 +511,10 @@ def interpolate_ddpm(vae_chkpt_path, ddpm_chkpt_path, **kwargs):
         z_1 = torch.randn(1, z_dim, 1, 1, device=dev)
         recons_inter = vae(z_1)
 
-        x_t1 = recons_inter + kwargs, get("temp") * torch.randn(
+        x_t1 = recons_inter + kwargs.get("temp") * torch.randn(
             1, 3, image_size, image_size, device=dev
         )
-        x_t2 = recons_inter + kwargs, get("temp") * torch.randn(
+        x_t2 = recons_inter + kwargs.get("temp") * torch.randn(
             1, 3, image_size, image_size, device=dev
         )
 
