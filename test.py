@@ -166,7 +166,6 @@ def sample_combined(
             )
 
 
-# TODO: Check how to perform Multi-GPU inference
 @cli.command()
 @click.argument("chkpt-path")
 @click.argument("root")
@@ -184,12 +183,11 @@ def reconstruct(
     num_samples=-1,
     save_path=os.getcwd(),
 ):
-    dev = configure_device(device)
+    dev, _ = configure_device(device)
     if num_samples == 0:
         raise ValueError(f"`--num-samples` can take value=-1 or > 0")
 
     # Transforms
-    assert image_size in [128, 256, 512]
     transforms = T.Compose(
         [
             T.Resize(image_size),
@@ -222,8 +220,8 @@ def reconstruct(
             recons = vae.forward_recons(batch)
 
         if count + recons.size(0) >= num_samples and num_samples != -1:
-            img_list.append(batch[:num_samples, :, :, :])
-            sample_list.append(recons[:num_samples, :, :, :])
+            img_list.append(batch[:num_samples, :, :, :].cpu())
+            sample_list.append(recons[:num_samples, :, :, :].cpu())
             break
 
         # Not transferring to CPU leads to memory overflow in GPU!

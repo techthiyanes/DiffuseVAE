@@ -11,4 +11,5 @@ python train_ae.py --enc-block-config "32x7,32d2,32t16,16x4,16d2,16t8,8x4,8d2,8t
                    --dataset cifar10 \
                    --results-dir ~/cifar10_ae/ \
                    --seed 0 \
+                   --restore-path ~/cifar10_ae/checkpoints/vae-epoch\=204-train_loss\=0.00.ckpt \
                    ~/datasets/

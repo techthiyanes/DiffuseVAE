@@ -195,8 +195,10 @@ class VAE(pl.LightningModule):
         dec_channel_str,
         alpha=1.0,
         lr=1e-4,
+        eval_mode="sample",
     ):
         super().__init__()
+        assert eval_mode in ["sample", "recons"]
         self.save_hyperparameters()
         self.enc_block_str = enc_block_str
         self.dec_block_str = dec_block_str
@@ -204,6 +206,7 @@ class VAE(pl.LightningModule):
         self.dec_channel_str = dec_channel_str
         self.alpha = alpha
         self.lr = lr
+        self.eval_mode = eval_mode
 
         # Encoder architecture
         self.enc = Encoder(self.enc_block_str, self.enc_channel_str)
@@ -260,6 +263,15 @@ class VAE(pl.LightningModule):
         total_loss = recons_loss + self.alpha * kl_loss
         self.log("Total Loss", total_loss)
         return total_loss
+
+    def predict_step(self, batch, batch_idx, dataloader_idx=None):
+        if self.eval_mode == "sample":
+            z = batch
+            recons = self(z)
+        else:
+            x = batch
+            recons = self.forward_recons(x)
+        return recons
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
