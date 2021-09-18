@@ -15,9 +15,9 @@ from models.diffusion import (
     DDPM,
     UNetModel,
     DDPMWrapper,
-    BYOLMAWeightUpdate,
     SuperResModel,
 )
+from models.callbacks import BYOLMAWeightUpdate
 from util import configure_device, get_dataset
 
 
