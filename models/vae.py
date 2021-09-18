@@ -176,7 +176,7 @@ class Decoder(nn.Module):
             )
         # TODO: If the training is unstable try using scaling the weights
         self.block_mod = nn.Sequential(*blocks)
-        self.last_conv = nn.Conv2d(channel_config[128], 3, 3, stride=1, padding=1)
+        self.last_conv = nn.Conv2d(channel_config[32], 3, 3, stride=1, padding=1)
 
     def forward(self, input):
         x = self.block_mod(input)
