@@ -120,6 +120,11 @@ class DDPM(nn.Module):
             # Langevin step!
             x = post_mean + torch.sqrt(post_variance) * z
 
+            if t == 0:
+                # NOTE: In the final step we remove the vae reconstruction bias
+                # added to the images as it degrades quality
+                x -= cond
+
             # Add results
             if idx + 1 in checkpoints:
                 sample_dict[str(idx + 1)] = x
