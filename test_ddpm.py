@@ -8,6 +8,7 @@ import pytorch_lightning as pl
 import torch
 from pytorch_lightning.utilities.seed import seed_everything
 from torch.utils.data import DataLoader, TensorDataset
+from tqdm import tqdm
 
 from datasets.latent import LatentDataset, ZipDataset
 from datasets.recons import ReconstructionDataset
@@ -421,7 +422,7 @@ def interpolate_vae(vae_chkpt_path, ddpm_chkpt_path, **kwargs):
         z_1 = torch.randn(1, z_dim, 1, 1, device=dev)
         z_2 = torch.randn(1, z_dim, 1, 1, device=dev)
 
-        for idx, l in enumerate(lam):
+        for idx, l in tqdm(enumerate(lam)):
             # Sample from VAE
             z_inter = z_1 * l + z_2 * (1 - l)
             recons_inter = vae(z_inter)
@@ -430,10 +431,22 @@ def interpolate_vae(vae_chkpt_path, ddpm_chkpt_path, **kwargs):
 
             # Sample from DDPM
             x_t = (
-                recons_inter + kwargs.get("temp") * torch.randn_like(recons_inter),
+                recons_inter + kwargs.get("temp") * torch.randn_like(recons_inter)
             ).to(dev)
-            ddpm_sample = ddpm_wrapper(x_t, cond=recons_inter, n_steps=n_steps).cpu()
+            ddpm_sample = ddpm_wrapper(x_t, cond=recons_inter, n_steps=n_steps)[
+                str(n_steps)
+            ].cpu()
             ddpm_samples_list.append(normalize(ddpm_sample))
+
+    cat_ddpm_samples = torch.cat(ddpm_samples_list, dim=0)
+    cat_vae_samples = torch.cat(vae_samples_list, dim=0)
+
+    # Save DDPM and VAE samples
+    save_path = kwargs.get("save_path")
+    save_path = os.path.join(save_path, str(n_steps))
+    os.makedirs(save_path, exist_ok=True)
+    save_as_images(cat_ddpm_samples, file_name=os.path.join(save_path, "inter_ddpm"))
+    save_as_images(cat_vae_samples, file_name=os.path.join(save_path, "inter_vae"))
 
     # Compare
     save_path = kwargs.get("save_path")
@@ -518,14 +531,24 @@ def interpolate_ddpm(vae_chkpt_path, ddpm_chkpt_path, **kwargs):
             1, 3, image_size, image_size, device=dev
         )
 
-        for idx, l in enumerate(lam):
+        for idx, l in tqdm(enumerate(lam)):
             # Sample from DDPM
             x_t_inter = x_t1 * l + x_t2 * (1 - l)
-            ddpm_sample = ddpm_wrapper(
-                x_t_inter, cond=recons_inter, n_steps=n_steps
-            ).cpu()
+            ddpm_sample = ddpm_wrapper(x_t_inter, cond=recons_inter, n_steps=n_steps)[
+                str(n_steps)
+            ].cpu()
             ddpm_samples_list.append(normalize(ddpm_sample))
             vae_samples_list.append(recons_inter.cpu())
+
+    cat_ddpm_samples = torch.cat(ddpm_samples_list, dim=0)
+    cat_vae_samples = torch.cat(vae_samples_list, dim=0)
+
+    # Save DDPM and VAE samples
+    save_path = kwargs.get("save_path")
+    save_path = os.path.join(save_path, str(n_steps))
+    os.makedirs(save_path, exist_ok=True)
+    save_as_images(cat_ddpm_samples, file_name=os.path.join(save_path, "inter_ddpm"))
+    save_as_images(cat_vae_samples, file_name=os.path.join(save_path, "inter_vae"))
 
     # Compare
     save_path = kwargs.get("save_path")
