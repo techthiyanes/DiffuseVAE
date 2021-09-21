@@ -73,6 +73,7 @@ def generate_recons(vae_chkpt_path, ddpm_chkpt_path, root, **kwargs):
         dropout=0,
         num_heads=1,
     )
+    unet.eval()
     online_network = DDPM(
         unet,
         beta_1=1e-4,
