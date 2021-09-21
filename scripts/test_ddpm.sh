@@ -9,8 +9,8 @@ python test_ddpm.py sample-cond --n-steps 500 \
                                 --n-workers 8 \
                                 --use-concat True \
                                 --checkpoints "" \
-                                ~/vaedm/checkpoints/vae-epoch\=189-train_loss\=0.00.ckpt \
-                                ~/ddpm_128_truncation_1.0/checkpoints/ddpmv2-epoch\=800-loss\=0.0058.ckpt
+                                ~/checkpoints/celebahq128/celebahq128_ae/vae-epoch\=189-train_loss\=0.00.ckpt \
+                                ~/checkpoints/celebahq128/ddpm_celebahq128_form2/checkpoints/ddpmv2-epoch\=800-loss\=0.0058.ckpt
 
 # python test_ddpm.py generate-recons --n-steps 300 \
 #                                 --device gpu:0,1,2,3 \
