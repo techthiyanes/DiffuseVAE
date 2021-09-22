@@ -85,6 +85,7 @@ class ImageWriter(BasePredictionWriter):
         compare=False,
         n_steps=None,
         eval_mode="sample",
+        sample_prefix="",
     ):
         super().__init__(write_interval)
         assert eval_mode in ["sample", "recons"]
@@ -92,6 +93,7 @@ class ImageWriter(BasePredictionWriter):
         self.compare = compare
         self.n_steps = 1000 if n_steps is None else n_steps
         self.eval_mode = eval_mode
+        self.sample_prefix = sample_prefix
 
     def write_on_batch_end(
         self,
@@ -123,7 +125,7 @@ class ImageWriter(BasePredictionWriter):
             save_as_images(
                 ddpm_samples,
                 file_name=os.path.join(
-                    img_save_path, f"output_form1_{rank}_{batch_idx}"
+                    img_save_path, f"output_{self.sample_prefix}_{rank}_{batch_idx}"
                 ),
             )
 
