@@ -149,6 +149,7 @@ def generate_recons(vae_chkpt_path, ddpm_chkpt_path, root, **kwargs):
 @click.argument("vae-chkpt-path")
 @click.argument("ddpm-chkpt-path")
 @click.option("--device", default="gpu:1")
+@click.option("--sample-prefix", default="")
 @click.option("--num-samples", default=1)
 @click.option("--image-size", default=128)
 @click.option("--z-dim", default=1024)
@@ -192,6 +193,7 @@ def sample_cond(vae_chkpt_path, ddpm_chkpt_path, **kwargs):
         dropout=0,
         num_heads=1,
     )
+    unet.eval()
     online_network = DDPM(
         unet,
         beta_1=1e-4,
@@ -255,6 +257,7 @@ def sample_cond(vae_chkpt_path, ddpm_chkpt_path, **kwargs):
         compare=kwargs.get("compare"),
         n_steps=n_steps,
         eval_mode="sample",
+        sample_prefix=kwargs.get("sample_prefix"),
     )
     test_kwargs["callbacks"] = [write_callback]
     test_kwargs["default_root_dir"] = kwargs.get("save_path")
