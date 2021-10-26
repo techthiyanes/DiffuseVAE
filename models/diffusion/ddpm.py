@@ -78,7 +78,7 @@ class DDPM(nn.Module):
 
         # Clip
         if clip_denoised:
-            x_recons.clamp_(0, 1.0)
+            x_recons.clamp_(-1.0, 1.0)
 
         # Compute posterior mean from the reconstruction
         post_mean = (
@@ -124,6 +124,71 @@ class DDPM(nn.Module):
                 # NOTE: In the final step we remove the vae reconstruction bias
                 # added to the images as it degrades quality
                 x -= cond
+
+            # Add results
+            if idx + 1 in checkpoints:
+                sample_dict[str(idx + 1)] = x
+        return sample_dict
+
+    def get_ddim_posterior_mean_covariance(
+        self, x_t, t, clip_denoised=True, cond=None, eta=0.0
+    ):
+        t_ = torch.full((x_t.size(0),), t, device=x_t.device, dtype=torch.long)
+        cond = 0 if cond is None else cond
+        eps_pred = self.decoder(x_t, t_, low_res=cond)
+        # Generate the reconstruction from x_t
+        x_recons = (
+            x_t - cond - eps_pred * extract(self.minus_sqrt_alpha_bar, t_, x_t.shape)
+        ) / extract(self.sqrt_alpha_bar, t_, x_t.shape)
+
+        # Clip
+        # if clip_denoised:
+        #     x_recons.clamp_(-1.0, 1.0)
+
+        alpha_bar = extract(self.alpha_bar, t_, x_t.shape)
+        alpha_bar_prev = extract(self.alpha_bar_shifted, t_, x_t.shape)
+        sigma = (
+            eta
+            * torch.sqrt((1 - alpha_bar_prev) / (1 - alpha_bar))
+            * torch.sqrt(1 - alpha_bar / alpha_bar_prev)
+        )
+
+        # Compute posterior mean from the reconstruction
+        post_mean = (
+            torch.sqrt(alpha_bar_prev) * x_recons
+            + torch.sqrt(1 - alpha_bar_prev - sigma ** 2) * eps_pred
+        )
+
+        return post_mean, sigma
+
+    def ddim_sample(self, x_t, cond=None, n_steps=None, checkpoints=[], eta=0.0):
+        if self.reuse_epsilon and self.epsilon is None:
+            _, C, H, W = x_t.shape
+            self.epsilon = torch.randn(self.T, C, H, W, device=x_t.device)
+
+        # The sampling process goes here!
+        x = x_t
+        sample_dict = {}
+
+        # Set device
+        dev = x_t.device
+        if not self.setup_consts:
+            self.setup_precomputed_const(dev)
+            self.setup_consts = True
+
+        num_steps = self.T if n_steps is None else n_steps
+        checkpoints = [num_steps] if checkpoints == [] else checkpoints
+        for idx, t in enumerate(reversed(range(0, num_steps))):
+            z = (
+                torch.randn_like(x_t)
+                if not self.reuse_epsilon
+                else self.epsilon[t, :, :, :]
+            )
+            post_mean, sigma = self.get_ddim_posterior_mean_covariance(
+                x, t, cond=cond, eta=eta
+            )
+            # Langevin step!
+            x = post_mean + sigma * z
 
             # Add results
             if idx + 1 in checkpoints:

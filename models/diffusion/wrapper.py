@@ -2,6 +2,7 @@ from models.diffusion.unet_openai import checkpoint
 import pytorch_lightning as pl
 import torch
 import torch.nn as nn
+import torchvision
 
 
 class DDPMWrapper(pl.LightningModule):
@@ -68,6 +69,9 @@ class DDPMWrapper(pl.LightningModule):
         if self.eval_mode == "sample":
             x_t, z = batch
             recons = self.vae(z)
+            recons = torchvision.transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])(
+                recons
+            )
             x_t = recons + self.temp * torch.randn_like(recons)
         else:
             (recons, _), x_t = batch
