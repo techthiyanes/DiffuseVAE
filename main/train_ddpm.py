@@ -59,6 +59,7 @@ def train(config):
         use_checkpoint=False,
         dropout=config.model.dropout,
         num_heads=config.model.n_heads,
+        skip_scale=config.model.skip_scale,
     )
 
     # EMA parameters are non-trainable

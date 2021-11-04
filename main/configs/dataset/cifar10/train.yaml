@@ -18,6 +18,7 @@ ddpm:
     beta1: 0.0001
     beta2: 0.02
     n_timesteps: 1000
+    skip_scale: True
 
   training:
     seed: 0

@@ -238,6 +238,7 @@ class ResBlock(TimestepBlock):
         use_scale_shift_norm=False,
         dims=2,
         use_checkpoint=False,
+        skip_scale=False,
     ):
         super().__init__()
         self.channels = channels
@@ -247,6 +248,7 @@ class ResBlock(TimestepBlock):
         self.use_conv = use_conv
         self.use_checkpoint = use_checkpoint
         self.use_scale_shift_norm = use_scale_shift_norm
+        self.skip_scale = skip_scale
 
         self.in_layers = nn.Sequential(
             normalization(channels),
@@ -302,6 +304,9 @@ class ResBlock(TimestepBlock):
         else:
             h = h + emb_out
             h = self.out_layers(h)
+
+        if self.skip_scale:
+            return (self.skip_connection(x) + h) / math.sqrt(2)
         return self.skip_connection(x) + h
 
 
@@ -396,6 +401,7 @@ class UNetModel(nn.Module):
         num_heads=1,
         num_heads_upsample=-1,
         use_scale_shift_norm=False,
+        skip_scale=False,
     ):
         super().__init__()
 
@@ -414,6 +420,7 @@ class UNetModel(nn.Module):
         self.use_checkpoint = use_checkpoint
         self.num_heads = num_heads
         self.num_heads_upsample = num_heads_upsample
+        self.skip_scale = skip_scale
 
         time_embed_dim = model_channels * 4
         self.time_embed = nn.Sequential(
@@ -446,6 +453,7 @@ class UNetModel(nn.Module):
                         dims=dims,
                         use_checkpoint=use_checkpoint,
                         use_scale_shift_norm=use_scale_shift_norm,
+                        skip_scale=self.skip_scale,
                     )
                 ]
                 ch = mult * model_channels
@@ -472,6 +480,7 @@ class UNetModel(nn.Module):
                 dims=dims,
                 use_checkpoint=use_checkpoint,
                 use_scale_shift_norm=use_scale_shift_norm,
+                skip_scale=self.skip_scale,
             ),
             AttentionBlock(ch, use_checkpoint=use_checkpoint, num_heads=num_heads),
             ResBlock(
@@ -481,6 +490,7 @@ class UNetModel(nn.Module):
                 dims=dims,
                 use_checkpoint=use_checkpoint,
                 use_scale_shift_norm=use_scale_shift_norm,
+                skip_scale=self.skip_scale,
             ),
         )
 
@@ -496,6 +506,7 @@ class UNetModel(nn.Module):
                         dims=dims,
                         use_checkpoint=use_checkpoint,
                         use_scale_shift_norm=use_scale_shift_norm,
+                        skip_scale=self.skip_scale,
                     )
                 ]
                 ch = model_channels * mult
