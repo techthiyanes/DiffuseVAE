@@ -29,11 +29,14 @@ class CMHQHighResReconsDataset(Dataset):
         for img in tqdm(os.listdir(img_path)):
             self.images.append(os.path.join(img_path, img))
 
+        # Assuming the npy array to be pickled dict of keys image names
+        # and reconstructions.
         self.recons = np.load(
-            os.path.join(self.recons_root, "annotated_recons_celebamaskhq128.npy")
-        )
+            os.path.join(self.recons_root, "annotated_recons_celebamaskhq128.npy"),
+            allow_pickle=True,
+        )[()]
 
-        assert self.images.shape[0] == self.recons.shape[0]
+        assert len(self.images) == len(self.recons)
 
     def __getitem__(self, idx):
         img_path = self.images[idx]
