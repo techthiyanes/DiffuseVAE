@@ -37,8 +37,9 @@ class CMHQHighResReconsDataset(Dataset):
 
     def __getitem__(self, idx):
         img_path = self.images[idx]
+        img_name = os.path.basename(img_path)
         img = Image.open(img_path)
-        recons = torch.from_numpy(self.recons[idx])
+        recons = torch.from_numpy(self.recons[img_name])
 
         if self.transform is not None:
             img = self.transform(img)
