@@ -13,8 +13,10 @@ from datasets import (
     AFHQDataset,
     ReconstructionDataset,
     CIFAR10Dataset,
-    ReconstructionDatasetv2
+    ReconstructionDatasetv2,
+    ZipDataset,
 )
+
 
 logger = logging.getLogger(__name__)
 
@@ -76,6 +78,10 @@ def get_dataset(name, root, image_size, norm=True, flip=False, **kwargs):
         dataset = ReconstructionDataset(root, norm=norm, transform=transform, **kwargs)
     elif name == "reconsv2":
         dataset = ReconstructionDatasetv2(root, norm=norm, transform=transform, **kwargs)
+    elif name == "cmhq_with_recons":
+        maskhq = CelebAMaskHQDataset(root[0], norm=norm, transform=transform, **kwargs)
+        recons = ReconstructionDataset(root, norm=norm, transform=transform, **kwargs)
+        dataset = ZipDataset(recons, maskhq)
     elif name == "cifar10":
         assert image_size == 32
         transform = T.Compose(
