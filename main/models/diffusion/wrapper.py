@@ -61,7 +61,7 @@ class DDPMWrapper(pl.LightningModule):
 
         cond = None
         if self.conditional:
-            (_, cond), x = batch
+            cond, x = batch
         else:
             x = batch
 
