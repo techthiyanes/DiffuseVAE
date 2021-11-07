@@ -275,7 +275,7 @@ if __name__ == "__main__":
     dec_block_config_str = "1x1,1u4,1t4,4x2,4u2,4t8,8x2,8u2,8t16,16x6,16u2,16t32,32x2,32u2,32t64,64x2,64u2,64t128,128x1"
     dec_channel_config_str = "128:64,64:64,32:128,16:128,8:256,4:512,1:1024"
 
-    vae = VAE(
+    vae = VAE(64,
         enc_block_config_str,
         dec_block_config_str,
         enc_channel_config_str,
