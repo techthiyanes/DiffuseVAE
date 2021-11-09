@@ -22,7 +22,7 @@ python main/train_ddpm.py +dataset=cifar10/train \
                      dataset.ddpm.model.skip_scale=True \
                      dataset.ddpm.training.type='form1' \
                      dataset.ddpm.training.batch_size=42 \
-                     dataset.ddpm.training.device=\'gpu:0,1\' \
-                     dataset.ddpm.training.results_dir=\'/data/kushagrap20/cifar10_models_vaedm_architecture=sota/cifar10_form1_scale=[-1,1]_2ndNov\' \
+                     dataset.ddpm.training.device=\'gpu:0,1,2\' \
+                     dataset.ddpm.training.results_dir=\'/data/kushagrap20/cifar10_models_vaedm_architecture=sota/cifar10_form1_scale=[-1,1]_6thNov_sota\' \
                      dataset.ddpm.training.workers=4 \
-                     dataset.ddpm.training.chkpt_prefix=\'cifar10_form1_scale=[-1,1]_2ndNov\'
+                     dataset.ddpm.training.chkpt_prefix=\'cifar10_form1_scale=[-1,1]_6thNov_sota\'

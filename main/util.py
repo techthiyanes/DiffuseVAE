@@ -58,24 +58,18 @@ def get_resnet_models(backbone_name, pretrained=False, **kwargs):
 
 def get_dataset(name, root, image_size, norm=True, flip=False, **kwargs):
     assert isinstance(norm, bool)
+    transform = T.Compose(
+        [
+            T.Resize(image_size),
+            T.RandomHorizontalFlip() if flip else T.Lambda(lambda t: t),
+        ]
+    )
     if name == "celeba":
-        transform = T.Compose(
-            [
-                T.Resize(image_size),
-                T.RandomHorizontalFlip() if flip else T.Lambda(lambda t: t),
-            ]
-        )
         dataset = CelebADataset(root, norm=norm, transform=transform, **kwargs)
     elif name == "celebamaskhq":
-        transform = T.Compose(
-            [
-                T.Resize(image_size),
-                T.RandomHorizontalFlip() if flip else T.Lambda(lambda t: t),
-            ]
-        )
         dataset = CelebAMaskHQDataset(root, norm=norm, transform=transform, **kwargs)
     elif name == "recons":
-        dataset = ReconstructionDataset(root, norm=norm, **kwargs)
+        dataset = ReconstructionDataset(root, norm=norm, transform=transform, **kwargs)
     elif name == "cifar10":
         assert image_size == 32
         transform = T.Compose(
