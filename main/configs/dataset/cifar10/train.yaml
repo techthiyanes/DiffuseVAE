@@ -60,6 +60,32 @@ vae:
     fp16: False
     batch_size: 128
     epochs: 1000
+    alpha: 1.0
+    log_step: 1
+    device: "gpu:0"
+    chkpt_interval: 1
+    optimizer: "Adam"
+    lr: 1e-4
+    restore_path: ""
+    results_dir: ???
+    workers: 2
+    chkpt_prefix: ""
+
+post_vae:
+  data:
+    root: ???
+
+  model:
+    in_channels: 512
+    latent_dim: 256
+    hidden_dims: [512, 256, 256]
+
+  training:
+    seed: 0
+    fp16: False
+    batch_size: 256
+    epochs: 1000
+    alpha: 1.0
     log_step: 1
     device: "gpu:0"
     chkpt_interval: 1

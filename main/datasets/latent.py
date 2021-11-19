@@ -3,6 +3,20 @@ import torch
 from torch.utils.data import Dataset
 
 
+class TensorDataset(Dataset):
+    def __init__(self, x):
+        if not isinstance(x, torch.Tensor):
+            self.x = torch.tensor(x)
+        else:
+            self.x = x
+
+    def __getitem__(self, idx):
+        return self.x[idx]
+
+    def __len__(self):
+        return int(self.x.size(0))
+    
+
 class LatentDataset(Dataset):
     def __init__(self, z_vae_size, z_ddpm_size, **kwargs):
         # NOTE: The batch index must be included in the latent code size input
