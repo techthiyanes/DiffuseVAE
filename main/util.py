@@ -72,14 +72,12 @@ def get_dataset(name, root, image_size, norm=True, flip=False, **kwargs):
         dataset = CelebADataset(root, norm=norm, transform=transform, **kwargs)
     elif name == "celebamaskhq":
         dataset = CelebAMaskHQDataset(root, norm=norm, transform=transform, **kwargs)
-    elif name == "afhq":
+    elif name == 'afhq':
         dataset = AFHQDataset(root, norm=norm, transform=transform, **kwargs)
     elif name == "recons":
         dataset = ReconstructionDataset(root, norm=norm, transform=transform, **kwargs)
     elif name == "reconsv2":
-        dataset = ReconstructionDatasetv2(
-            root, norm=norm, transform=transform, **kwargs
-        )
+        dataset = ReconstructionDatasetv2(root, norm=norm, transform=transform, **kwargs)
     elif name == "cmhq_with_recons":
         dataset = CMHQHighResReconsDataset(
             *root, norm=norm, transform=transform, **kwargs
