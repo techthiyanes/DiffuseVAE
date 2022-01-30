@@ -13,6 +13,7 @@ from datasets import (
     CIFAR10Dataset,
     ReconstructionDataset,
     ReconstructionDatasetv2,
+    CelebAHQDataset,
 )
 
 logger = logging.getLogger(__name__)
@@ -42,6 +43,8 @@ def get_dataset(name, root, image_size, norm=True, flip=False, **kwargs):
     )
     if name == "celeba":
         dataset = CelebADataset(root, norm=norm, transform=transform, **kwargs)
+    elif name == "celebahq":
+        dataset = CelebAHQDataset(root, norm=norm, transform=transform, **kwargs)
     elif name == "celebamaskhq":
         dataset = CelebAMaskHQDataset(root, norm=norm, transform=transform, **kwargs)
     elif name == "afhq":
