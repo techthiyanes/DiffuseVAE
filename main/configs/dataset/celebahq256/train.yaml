@@ -21,6 +21,7 @@ ddpm:
 
   training:
     seed: 0
+    vae_chkpt_path: ???
     fp16: False
     use_ema: True
     type: 'form1'

@@ -10,8 +10,8 @@ from pytorch_lightning.utilities.seed import seed_everything
 from torch.utils.data import DataLoader
 
 from models.callbacks import EMAWeightUpdate
-from models.diffusion import (DDPM, DDPMv2, DDPMWrapper, SuperResModel,
-                              UNetModel)
+from models.diffusion import DDPM, DDPMv2, DDPMWrapper, SuperResModel, UNetModel
+from models.vae import VAE
 from util import configure_device, get_dataset
 
 logger = logging.getLogger(__name__)
@@ -25,6 +25,7 @@ def __parse_str(s):
 @hydra.main(config_path="configs")
 def train(config):
     # Get config and setup
+    config_vae = config.dataset.vae
     config = config.dataset.ddpm
     logger.info(OmegaConf.to_yaml(config))
 
@@ -62,6 +63,17 @@ def train(config):
         num_heads=config.model.n_heads,
     )
 
+    # Load pretrained VAE
+    vae = VAE.load_from_checkpoint(
+        config.training.vae_chkpt_path,
+        input_res=image_size,
+        enc_block_str=config_vae.model.enc_block_config,
+        dec_block_str=config_vae.model.dec_block_config,
+        enc_channel_str=config_vae.model.enc_channel_config,
+        dec_channel_str=config_vae.model.dec_channel_config,
+    )
+    vae.eval()
+
     # EMA parameters are non-trainable
     ema_decoder = copy.deepcopy(decoder)
     for p in ema_decoder.parameters():
@@ -88,6 +100,7 @@ def train(config):
     ddpm_wrapper = DDPMWrapper(
         online_ddpm,
         target_ddpm,
+        vae,
         lr=lr,
         n_anneal_steps=config.training.n_anneal_steps,
         loss=config.training.loss,

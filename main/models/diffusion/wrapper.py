@@ -9,7 +9,7 @@ class DDPMWrapper(pl.LightningModule):
         self,
         online_network,
         target_network,
-        vae=None,
+        vae,
         lr=2e-5,
         n_anneal_steps=0,
         loss="l1",
@@ -30,6 +30,9 @@ class DDPMWrapper(pl.LightningModule):
         self.online_network = online_network
         self.target_network = target_network
         self.vae = vae
+
+        for p in self.vae.parameters():
+            p.requires_grad = False
 
         # Training arguments
         self.criterion = nn.MSELoss(reduction="mean") if loss == "l2" else nn.L1Loss()
@@ -58,11 +61,17 @@ class DDPMWrapper(pl.LightningModule):
         optim = self.optimizers()
         lr_sched = self.lr_schedulers()
 
-        cond = None
-        if self.conditional:
-            cond, x = batch
-        else:
-            x = batch
+        # cond = None
+        # if self.conditional:
+        #     cond, x = batch
+        # else:
+        #     x = batch
+
+        x = batch
+
+        # Generate the reconstruction
+        recons = self.vae.forward_recons(x * 0.5 + 0.5)
+        recons = 2 * recons - 1
 
         # Sample timepoints
         t = torch.randint(
@@ -73,7 +82,7 @@ class DDPMWrapper(pl.LightningModule):
         eps = torch.randn_like(x)
 
         # Predict noise
-        eps_pred = self.online_network(x, eps, t, low_res=cond)
+        eps_pred = self.online_network(x, eps, t, low_res=recons)
 
         # Compute loss
         loss = self.criterion(eps, eps_pred)

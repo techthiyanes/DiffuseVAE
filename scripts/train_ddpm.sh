@@ -1,3 +1,17 @@
+# CelebAHQ-256 training
+python main/train_ddpm.py +dataset=celebahq256/train \
+                     dataset.ddpm.data.root='/data/kushagrap20/datasets/celeba_hq/' \
+                     dataset.ddpm.data.name=celebahq \
+                     dataset.ddpm.data.norm=True \
+                     dataset.ddpm.training.vae_chkpt_path=\'/data/kushagrap20/vae_celebahq256_alpha=1.0_Jan31/checkpoints/vae-celebahq256_alpha=1.0_Jan31-epoch=499-train_loss=0.0000.ckpt\' \
+                     dataset.ddpm.training.type=form1 \
+                     dataset.ddpm.training.batch_size=2 \
+                     dataset.ddpm.training.device=\'gpu:0\' \
+                     dataset.ddpm.training.results_dir=\'/data/kushagrap20/ddpm_celebahq256_26thMar_form1\' \
+                     dataset.ddpm.training.workers=2 \
+                     dataset.ddpm.training.chkpt_prefix='celebahq256_26thMar_form1'
+
+
 # CelebAMaskHQ training
 # python train_ddpm.py +dataset=celebamaskhq128/train \
 #                      dataset.ddpm.data.root='/data/kushagrap20/vaedm/reconstructions_celebahq' \
@@ -12,18 +26,18 @@
 #                      dataset.ddpm.training.chkpt_prefix='celebamaskhq_26thOct_form2_scale01'
 
 # AFHQ training
-python main/train_ddpm.py +dataset=afhq128/train \
-                     dataset.ddpm.data.root='/data1/kushagrap20/reconstructions/afhq_reconsv2/' \
-                     dataset.ddpm.data.name='recons' \
-                     dataset.ddpm.data.norm=True \
-                     dataset.ddpm.data.hflip=True \
-                     dataset.ddpm.training.type='form1' \
-                     dataset.ddpm.training.batch_size=12 \
-                     dataset.ddpm.training.device=\'gpu:0,1,2,3\' \
-                     dataset.ddpm.training.results_dir=\'/data1/kushagrap20/ddpm_afhq_16thDec_form1_scale[-11]\' \
-                     dataset.ddpm.training.restore_path=\'/data1/kushagrap20/ddpm_afhq_13thDec_form1_scale[-11]/checkpoints/ddpmv2-afhq_13thDec_form1_scale[-11]-epoch=402-loss=0.0045.ckpt\' \
-                     dataset.ddpm.training.workers=2 \
-                     dataset.ddpm.training.chkpt_prefix=\'afhq_16thDec_form1_scale[-11]\'
+# python main/train_ddpm.py +dataset=afhq128/train \
+#                      dataset.ddpm.data.root='/data1/kushagrap20/reconstructions/afhq_reconsv2/' \
+#                      dataset.ddpm.data.name='recons' \
+#                      dataset.ddpm.data.norm=True \
+#                      dataset.ddpm.data.hflip=True \
+#                      dataset.ddpm.training.type='form1' \
+#                      dataset.ddpm.training.batch_size=12 \
+#                      dataset.ddpm.training.device=\'gpu:0,1,2,3\' \
+#                      dataset.ddpm.training.results_dir=\'/data1/kushagrap20/ddpm_afhq_16thDec_form1_scale[-11]\' \
+#                      dataset.ddpm.training.restore_path=\'/data1/kushagrap20/ddpm_afhq_13thDec_form1_scale[-11]/checkpoints/ddpmv2-afhq_13thDec_form1_scale[-11]-epoch=402-loss=0.0045.ckpt\' \
+#                      dataset.ddpm.training.workers=2 \
+#                      dataset.ddpm.training.chkpt_prefix=\'afhq_16thDec_form1_scale[-11]\'
 
 # CelebA training
 # python main/train_ddpm.py +dataset=celeba64/train \
