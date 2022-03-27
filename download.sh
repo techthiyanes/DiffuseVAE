@@ -22,6 +22,14 @@ elif  [ $FILE == "afhq" ]; then
     unzip $ZIP_FILE -d ./
     rm $ZIP_FILE
 
+elif  [ $FILE == "celeba-hq-dataset" ]; then
+    URL=https://www.dropbox.com/s/f7pvjij2xlpff59/celeba_hq.zip?dl=0
+    ZIP_FILE=./data/celeba_hq.zip
+    mkdir -p ./data
+    wget -N $URL -O $ZIP_FILE
+    unzip $ZIP_FILE -d ./data
+    rm $ZIP_FILE
+
 else
     echo "Available arguments are afhq, celeba, celebamask-hq"
     exit 1
