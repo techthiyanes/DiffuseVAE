@@ -117,7 +117,8 @@ class DDPMWrapper(pl.LightningModule):
             # Initial temperature scaling
             x_t = x_t * self.temp
         else:
-            (recons, _), x_t = batch
+            img, x_t = batch
+            recons = self.vae.forward_recons(img * 0.5 + 0.5)
             x_t = self.temp * x_t[0]  # This is really a one element tuple
 
         # Normalize

@@ -95,6 +95,18 @@ class ImageWriter(BasePredictionWriter):
         dataloader_idx,
     ):
         rank = pl_module.global_rank
+
+        img_save_path = os.path.join(self.output_dir, "batch")
+        os.makedirs(img_save_path, exist_ok=True)
+        self.save_fn(
+            batch[0],
+            file_name=os.path.join(
+                img_save_path,
+                f"output_vae_{self.sample_prefix}_{rank}_{batch_idx}",
+            ),
+            denorm=self.is_norm,
+        )
+
         if self.conditional:
             ddpm_samples_dict, vae_samples = prediction
 

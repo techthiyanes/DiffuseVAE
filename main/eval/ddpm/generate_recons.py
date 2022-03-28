@@ -18,7 +18,7 @@ from models.diffusion import DDPM, DDPMv2, DDPMWrapper, SuperResModel
 from models.vae import VAE
 from pytorch_lightning.utilities.seed import seed_everything
 from torch.utils.data import DataLoader, TensorDataset
-from util import configure_device
+from util import configure_device, get_dataset
 
 
 def __parse_str(s):
@@ -99,8 +99,8 @@ def generate_recons(config):
     )
 
     # Create predict dataset of reconstructions
-    recons_dataset = ReconstructionDataset(
-        config_ddpm.data.root, norm=config_ddpm.data.norm, subsample_size=n_samples
+    recons_dataset = get_dataset(
+        'celebahq', '/content/celeba_hq', image_size, norm=True, flip=False, subsample_size=n_samples
     )
     ddpm_latent_dataset = TensorDataset(
         torch.randn(n_samples, 3, image_size, image_size)
