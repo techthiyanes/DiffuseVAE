@@ -1,18 +1,44 @@
-python main/eval/ddpm/sample_cond.py +dataset=celebamaskhq128/test \
+# Sample Generation
+python main/eval/ddpm/sample_cond.py +dataset=celebahq256/test \
                         dataset.ddpm.data.norm=True \
-                        dataset.ddpm.evaluation.seed=0 \
-                        dataset.ddpm.evaluation.sample_prefix='gpu_3' \
-                        dataset.ddpm.evaluation.device=\'gpu:3\' \
-                        dataset.ddpm.evaluation.chkpt_path=\'/data1/kushagrap20/checkpoints/cmhq/ddpmv2-celebamaskhq_24thOct-epoch=259-loss=0.0054.ckpt\' \
-                        dataset.ddpm.evaluation.type='form2' \
-                        dataset.ddpm.evaluation.temp=0.1 \
-                        dataset.ddpm.evaluation.batch_size=64 \
-                        dataset.ddpm.evaluation.save_path=\'/data1/kushagrap20/ddpm_form2_cmhq_temp=0.1_5k/\' \
-                        dataset.ddpm.evaluation.n_samples=5000 \
-                        dataset.ddpm.evaluation.n_steps=500 \
+                        dataset.ddpm.data.image_size=256 \
+                        dataset.ddpm.model.n_residual=3 \
+                        dataset.ddpm.model.n_heads=8 \
+                        dataset.ddpm.evaluation.seed=1 \
+                        dataset.ddpm.evaluation.sample_prefix='gpu_1' \
+                        dataset.ddpm.evaluation.device=\'gpu:1\' \
+                        dataset.ddpm.evaluation.chkpt_path=\'/data1/kushagrap20/ddpmv2-celebahq256_26thMar_form1_benchmark_chq256-epoch=407-loss=0.0040.ckpt\' \
+                        dataset.ddpm.evaluation.type='form1' \
+                        dataset.ddpm.evaluation.save_mode='image' \
+                        dataset.ddpm.evaluation.temp=0.6 \
+                        dataset.ddpm.evaluation.batch_size=8 \
+                        dataset.ddpm.evaluation.save_path=\'/data1/kushagrap20/ddpm_form1_chq256_temp=0.6_5k_epoch=407/\' \
+                        dataset.ddpm.evaluation.n_samples=250 \
+                        dataset.ddpm.evaluation.n_steps=1000 \
                         dataset.ddpm.evaluation.save_vae=True \
                         dataset.ddpm.evaluation.workers=1 \
-                        dataset.vae.evaluation.chkpt_path=\'/data1/kushagrap20/checkpoints/cmhq/vae-epoch=189-train_loss=0.00.ckpt\'
+                        dataset.vae.evaluation.chkpt_path=\'/data1/kushagrap20/vae-celebahq256_alpha=1.0_Jan31-epoch=499-train_loss=0.0000.ckpt\'
+
+# # Reconstruction
+# python main/eval/ddpm/generate_recons.py +dataset=celebahq256/test \
+#                         dataset.ddpm.data.norm=True \
+#                         dataset.ddpm.data.image_size=256 \
+#                         dataset.ddpm.model.n_residual=3 \
+#                         dataset.ddpm.model.n_heads=8 \
+#                         dataset.ddpm.evaluation.seed=0 \
+#                         dataset.ddpm.evaluation.sample_prefix='gpu_0' \
+#                         dataset.ddpm.evaluation.save_mode='image' \
+#                         dataset.ddpm.evaluation.chkpt_path=\'/data1/kushagrap20/ddpmv2-celebahq256_26thMar_form1_benchmark_chq256-epoch=349-loss=0.0083.ckpt\' \
+#                         dataset.ddpm.evaluation.type='form1' \
+#                         dataset.ddpm.evaluation.temp=1.0 \
+#                         dataset.ddpm.evaluation.batch_size=1 \
+#                         dataset.ddpm.evaluation.device=\'gpu:0\' \
+#                         dataset.ddpm.evaluation.save_path=\'/data1/kushagrap20/ddpm_form1_recons_seed0_temp=1.0\' \
+#                         dataset.ddpm.evaluation.n_samples=8 \
+#                         dataset.ddpm.evaluation.n_steps=1000 \
+#                         dataset.ddpm.evaluation.save_vae=True \
+#                         dataset.ddpm.evaluation.workers=1 \
+#                         dataset.vae.evaluation.chkpt_path=\'/data1/kushagrap20/vae-celebahq256_alpha=1.0_Jan31-epoch=499-train_loss=0.0000.ckpt\'
 
 
 # python main/eval/ddpm/sample_cond.py +dataset=afhq128/test \
